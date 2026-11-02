@@ -1,0 +1,14 @@
+{
+  "name": "dsh-superagent-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agent Console demo: a self-contained agent management console",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
