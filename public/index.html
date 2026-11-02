@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Agent Console：一个用于管理智能体、任务队列与运行活动的本地演示控制台。" />
+    <title>Agent Console · 智能体管理控制台</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 3 4.5 7.2v9.6L12 21l7.5-4.2V7.2L12 3Z" stroke-linejoin="round" />
+              <circle cx="12" cy="12" r="3.1" />
+            </svg>
+          </span>
+          <div class="brand-text">
+            <h1>Agent Console <span class="demo-badge">Demo</span></h1>
+            <p>智能体管理控制台</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="connection" id="connection" data-state="connecting">
+            <span class="connection-dot" aria-hidden="true"></span>
+            <span id="connection-text">连接中</span>
+          </span>
+          <button class="btn ghost" id="add-agent-button" type="button">
+            <span aria-hidden="true">＋</span> 新建 Agent
+          </button>
+          <button class="btn primary" id="add-task-button" type="button">
+            <span aria-hidden="true">＋</span> 新建任务
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="kpis" id="kpis" aria-label="运行概览">
+        <div class="kpi"><span class="kpi-label">在线 Agent</span><strong class="kpi-value">—</strong><span class="kpi-foot">正在读取</span></div>
+        <div class="kpi"><span class="kpi-label">运行中任务</span><strong class="kpi-value">—</strong><span class="kpi-foot">正在读取</span></div>
+        <div class="kpi"><span class="kpi-label">排队任务</span><strong class="kpi-value">—</strong><span class="kpi-foot">正在读取</span></div>
+        <div class="kpi"><span class="kpi-label">今日完成</span><strong class="kpi-value">—</strong><span class="kpi-foot">正在读取</span></div>
+      </section>
+
+      <section class="panel" aria-labelledby="agents-heading">
+        <div class="section-head">
+          <div>
+            <h2 id="agents-heading">Agents</h2>
+            <p>在线智能体与当前工作负载</p>
+          </div>
+          <span class="muted" id="agents-summary"></span>
+        </div>
+        <div class="agent-grid" id="agent-grid">
+          <div class="empty-state">正在连接本地运行时…</div>
+        </div>
+      </section>
+
+      <div class="lower-grid">
+        <section class="panel" aria-labelledby="tasks-heading">
+          <div class="section-head section-head-wrap">
+            <div>
+              <h2 id="tasks-heading">任务队列</h2>
+              <p>排队、执行与最近结束的任务</p>
+            </div>
+            <div class="segmented" id="task-filters" role="tablist" aria-label="按状态过滤任务"></div>
+          </div>
+          <div class="table-wrap">
+            <table class="task-table">
+              <thead>
+                <tr>
+                  <th scope="col">任务</th>
+                  <th scope="col">优先级</th>
+                  <th scope="col">Agent</th>
+                  <th scope="col">状态</th>
+                  <th scope="col">进度</th>
+                  <th scope="col" class="actions-col">操作</th>
+                </tr>
+              </thead>
+              <tbody id="task-body">
+                <tr><td colspan="6"><div class="empty-state">正在读取任务…</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="activity-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="activity-heading">活动</h2>
+              <p>调度与执行日志</p>
+            </div>
+          </div>
+          <ol class="activity-list" id="activity-list">
+            <li class="empty-state">正在读取活动…</li>
+          </ol>
+        </section>
+      </div>
+    </main>
+
+    <dialog id="agent-dialog" class="dialog" aria-labelledby="agent-dialog-title">
+      <form id="agent-form" novalidate>
+        <div class="dialog-head">
+          <div>
+            <h2 id="agent-dialog-title">新建 Agent</h2>
+            <p class="dialog-desc">创建一个待命的智能体，它会自动领取队列中的任务。</p>
+          </div>
+          <button class="icon-btn" type="button" data-close-dialog aria-label="关闭">✕</button>
+        </div>
+        <div class="field">
+          <label for="agent-name">名称</label>
+          <input id="agent-name" name="name" type="text" maxlength="24" placeholder="例如：Orion" autocomplete="off" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="agent-role">角色</label>
+            <select id="agent-role" name="role">
+              <option value="coordinator">协调者</option>
+              <option value="developer" selected>开发者</option>
+              <option value="reviewer">评审者</option>
+              <option value="researcher">研究员</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="agent-model">模型</label>
+            <select id="agent-model" name="model">
+              <option value="deepseek-v4" selected>deepseek-v4</option>
+              <option value="deepseek-v4-mini">deepseek-v4-mini</option>
+              <option value="deepseek-reasoner">deepseek-reasoner</option>
+            </select>
+          </div>
+        </div>
+        <p class="form-error" id="agent-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="btn ghost" type="button" data-close-dialog>取消</button>
+          <button class="btn primary" type="submit" id="agent-submit">创建 Agent</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="task-dialog" class="dialog" aria-labelledby="task-dialog-title">
+      <form id="task-form" novalidate>
+        <div class="dialog-head">
+          <div>
+            <h2 id="task-dialog-title">新建任务</h2>
+            <p class="dialog-desc">任务进入队列后，由空闲的 Agent 自动领取并模拟执行。</p>
+          </div>
+          <button class="icon-btn" type="button" data-close-dialog aria-label="关闭">✕</button>
+        </div>
+        <div class="field">
+          <label for="task-title">标题</label>
+          <input id="task-title" name="title" type="text" maxlength="100" placeholder="例如：梳理工单重试策略" autocomplete="off" required />
+        </div>
+        <div class="field">
+          <label for="task-description">描述 <span class="label-hint">可选</span></label>
+          <textarea id="task-description" name="description" rows="3" maxlength="500" placeholder="补充背景、验收标准或注意事项"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="task-priority">优先级</label>
+            <select id="task-priority" name="priority">
+              <option value="high">高</option>
+              <option value="normal" selected>普通</option>
+              <option value="low">低</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="task-agent">执行 Agent</label>
+            <select id="task-agent" name="agentId"></select>
+          </div>
+        </div>
+        <p class="form-error" id="task-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="btn ghost" type="button" data-close-dialog>取消</button>
+          <button class="btn primary" type="submit" id="task-submit">加入队列</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
